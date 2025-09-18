@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,8 @@ export default function Index() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState('');
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const testimonialsRef = useRef<HTMLDivElement>(null);
 
   const services = [
     {
@@ -77,8 +79,44 @@ export default function Index() {
       name: 'Елена В.',
       text: 'Работа с родовой кармой изменила мою жизнь. Наконец-то разорвала негативные семейные сценарии.',
       rating: 5
+    },
+    {
+      name: 'Михаил Р.',
+      text: 'Белла помогла мне разобраться в сложной жизненной ситуации. Её прогнозы оказались удивительно точными!',
+      rating: 5
+    },
+    {
+      name: 'Ольга С.',
+      text: 'Диагностика ауры открыла мне глаза на многие вещи. Теперь я понимаю, откуда брались проблемы.',
+      rating: 5
+    },
+    {
+      name: 'Игорь П.',
+      text: 'После консультации кардинально изменил подход к бизнесу. Результаты превзошли все ожидания!',
+      rating: 5
     }
   ];
+
+  const scrollToTestimonial = (index: number) => {
+    if (testimonialsRef.current) {
+      const cardWidth = testimonialsRef.current.scrollWidth / testimonials.length;
+      testimonialsRef.current.scrollTo({
+        left: cardWidth * index,
+        behavior: 'smooth'
+      });
+      setCurrentTestimonial(index);
+    }
+  };
+
+  const nextTestimonial = () => {
+    const nextIndex = (currentTestimonial + 1) % testimonials.length;
+    scrollToTestimonial(nextIndex);
+  };
+
+  const prevTestimonial = () => {
+    const prevIndex = currentTestimonial === 0 ? testimonials.length - 1 : currentTestimonial - 1;
+    scrollToTestimonial(prevIndex);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/20">
@@ -298,20 +336,62 @@ export default function Index() {
             <h2 className="text-4xl font-bold mb-4">Отзывы клиентов</h2>
             <p className="text-xl text-muted-foreground">Что говорят люди о моих консультациях</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-border/50 bg-card/50 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-1 mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Icon key={i} name="Star" className="text-yellow-400 fill-current" size={16} />
-                    ))}
-                  </div>
-                  <p className="text-muted-foreground mb-4 leading-relaxed">"{testimonial.text}"</p>
-                  <p className="font-semibold">{testimonial.name}</p>
-                </CardContent>
-              </Card>
-            ))}
+          
+          <div className="relative">
+            {/* Navigation Buttons */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm hover:bg-background"
+              onClick={prevTestimonial}
+            >
+              <Icon name="ChevronLeft" size={20} />
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm hover:bg-background"
+              onClick={nextTestimonial}
+            >
+              <Icon name="ChevronRight" size={20} />
+            </Button>
+            
+            {/* Testimonials Slider */}
+            <div 
+              ref={testimonialsRef}
+              className="flex gap-8 overflow-x-auto scrollbar-hide snap-x snap-mandatory px-12 py-4"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {testimonials.map((testimonial, index) => (
+                <Card key={index} className="min-w-[350px] md:min-w-[400px] snap-center border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-1 mb-4">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <Icon key={i} name="Star" className="text-yellow-400 fill-current" size={16} />
+                      ))}
+                    </div>
+                    <p className="text-muted-foreground mb-4 leading-relaxed text-lg">"{testimonial.text}"</p>
+                    <p className="font-semibold text-primary">{testimonial.name}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            {/* Dots Indicator */}
+            <div className="flex justify-center gap-2 mt-8">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  className={`w-3 h-3 rounded-full transition-all ${
+                    index === currentTestimonial 
+                      ? 'bg-primary scale-110' 
+                      : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                  }`}
+                  onClick={() => scrollToTestimonial(index)}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
